@@ -3,45 +3,42 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-
-// The Reality Check: CORS (Cross-Origin Resource Sharing)
-// Without this line, your browser will block the Vue app from talking to this server.
-app.use(cors()); 
+app.use(cors());
 app.use(express.json());
 
-// Basic health check endpoint
+// Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'Orchestrator is online' });
+  res.status(200).json({ status: 'EHR Orchestrator is online' });
 });
 
-// The main processing webhook/endpoint
-app.post('/api/process-batch', (req, res) => {
-  const { patient_id, image_ids } = req.body;
+// The updated clinical processing endpoint
+app.post('/api/process-visit', (req, res) => {
+  const { visit_id } = req.body;
 
   // 1. Validation
-  if (!patient_id || !image_ids || !image_ids.length) {
+  if (!visit_id) {
     console.error('[ERROR] Invalid payload received:', req.body);
-    return res.status(400).json({ error: 'Missing patient_id or image_ids' });
+    return res.status(400).json({ error: 'Missing visit_id' });
   }
 
   // 2. Logging the Request
-  console.log(`\n--- NEW PROCESSING REQUEST ---`);
-  console.log(`Patient ID: ${patient_id}`);
-  console.log(`Images in Queue: ${image_ids.length}`);
-  console.log(`Image IDs:`, image_ids);
-  console.log(`------------------------------\n`);
+  console.log(`\n--- NEW CLINICAL AI BATCH ---`);
+  console.log(`Target Visit ID: ${visit_id}`);
+  console.log(`Action: Fetching pending images for this visit from Supabase...`);
+  console.log(`-----------------------------\n`);
 
   // 3. Phase 3 Placeholder
-  // THIS is exactly where we will write the code to contact Modal (Python/GPU) next month.
+  // Next month, we write the Python/Modal integration here.
+  // The orchestrator will query Supabase for all images where visit_id matches and status = 'pending',
+  // and pass their secure URLs to the bacteria segmentation models.
   
-  // 4. Return Success to Vue
+  // 4. Acknowledge Receipt
   res.status(200).json({ 
-    message: 'Batch successfully received by orchestrator', 
-    queued_count: image_ids.length 
+    message: 'Visit batch successfully queued for bacteria segmentation.' 
   });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 AI Orchestrator running on port ${PORT}`);
+  console.log(`🚀 EHR Orchestrator running on port ${PORT}`);
 });
